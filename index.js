@@ -1,3 +1,8 @@
+const readline = require('readline').createInterface({
+  input: process.stdin,
+  output: process.stdout
+})
+
 // Copied from https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
 function shuffle(a) {
   for (let i = a.length - 1; i > 0; i--) {
@@ -7,12 +12,12 @@ function shuffle(a) {
   return a;
 }
 
-const pause = (time) => {
+export const pause = (time) => {
   // Defines a pause to help the game flow
   return setTimeout({}, time)
 }
 
-const makeDeck = () => {
+export const makeDeck = () => {
   // Creates and shuffles a deck of cards
   let deck = []
   [s, d, h, c].forEach(suit => {
@@ -23,24 +28,24 @@ const makeDeck = () => {
   return shuffle(deck)
 }
 
-const makePlayerHand = (deck) => {
+export const makePlayerHand = (deck) => {
   // Returns hand and remaining deck
   const hand = [deck.pop(), deck.pop()]
 
-  return { hand, deck }
+  return [ hand, deck ]
 }
 
-const makeDealerHand = (deck) => {
+export const makeDealerHand = (deck) => {
   // Returns dealer hand as [?, card, card] and remaining deck
   const hand = ['?', deck.pop(), deck.pop()]
-  return { hand, deck }
+  return [ hand, deck ]
 }
 
-const showPlayerBoard = (playerName, playerHand) => {
+export const showPlayerBoard = (playerName, playerHand) => {
   console.log(`${playerName}'s hand: ${playerHand} = ${totalHandValue(playerHand)}`);
 }
 
-const showDealerBoard = (dealerHand) => {
+export const showDealerBoard = (dealerHand) => {
   if (dealerHand[0] === '?') {
     console.log(`Dealer's hand: ${dealerHand[0, 1]}`);
   } else {
@@ -48,13 +53,13 @@ const showDealerBoard = (dealerHand) => {
   }
 }
 
-const showFullBoard = (playerName, playerHand, dealerHand) => {
+export const showFullBoard = (playerName, playerHand, dealerHand) => {
   playerBoard(playerName, playerHand)
   dealerHand(dealerHand)
 }
 
 
-const totalHandValue = (hand) => {
+export const totalHandValue = (hand) => {
   let totalValue = 0;
   hand.forEach(card => {
     if (card !== '?') {
@@ -82,12 +87,12 @@ const totalHandValue = (hand) => {
   });
 }
 
-const hit = (hand, deck) => {
+export const hit = (hand, deck) => {
   hand.append(deck.pop())
-  return { hand, deck }
+  return [ hand, deck ]
 }
 
-const isBust = (hand) => {
+export const isBust = (hand) => {
   if (totalHandValue(hand) > 21) {
     return true
   } else {
@@ -95,14 +100,30 @@ const isBust = (hand) => {
   }
 }
 
-const playerTurn = () => {
+const playerTurn = (hand, deck) => {
   // Asks the player if they want to hit or stand and returns appropriately
+  let userAction;
+  while(!(userAction.startsWith("h") || userAction.startsWith('s'))) {
+    readline.question(`Would you like to hit or stand?`, (action) => {
+      userAction = action.toLowerCase();
+      readline.close()
+    })
+  }
 
+  if (userAction.startsWith("h")) {
+    return hit(hand, deck)
+  } else {
+    return [hand, deck]
+  }
 }
 
-const dealTurn = () => {
+const dealerTurn = (hand, deck) => {
   // Take dealer turn
-
+  if (totalHandValue(hand) < 17) {
+    hit(dealerHand)
+  } else {
+    return [hand, deck]
+  }
 }
 
 const playAgain = () => {
@@ -110,13 +131,29 @@ const playAgain = () => {
 
 }
 
-const whoWins = () => {
-  // WOrks out winner of game
-
+const whoWins = (playerHand, dealerHand) => {
+  // Works out winner of game
+  if (playerHand.length > 4 && !isBust(playerHand)) return ["player", "You got a 5 card trick! Well done you get a point."]
+  if (isBust(playerHand)) return ["dealer", "You went bust! The dealer gets a point."]
+  if (isBust(dealerHand)) return ["player", "The dealer went bust! You get a point."]
+  if (totalHandValue(playerHand) > totalHandValue(dealerHand)) return ["player", "Your hand is worth more than the dealer's, you win!"]
+  if (totalHandValue(dealerHand) > totalHandValue(player)) return ["player", "Unlucky, the dealer wins."]
+  return ["tie", "The game is tied! Nobody gets a point this time..."]
 }
 
 const scoreBoard = () => {
   // Returns number of games user and dealer have won
+
+}
+
+const playFullHand = () => {
+  let deck = makeDeck();
+
+  let playerHand;
+  [playerHand, deck] = makePlayerHand(deck)
+
+  let dealerHand;
+  [dealerHand, deck] = makePlayerHand(deck)
 
 }
 
